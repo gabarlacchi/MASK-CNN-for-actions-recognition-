@@ -49,7 +49,8 @@ class actionCLSS_Dataset(utils.Dataset):
 			 "VolleyballSpiking",
 			 "WalkingWithDog"
 		]
-
+	# classes = [dir for dir in os.listdir(root) if not dir.endswith('.DS_Store')]
+	
 	def load_dataset(self, count, width, height):
 		# add the new classes
 		for i in range( len(self.classes) ):
@@ -68,7 +69,7 @@ class actionCLSS_Dataset(utils.Dataset):
 	def selectActions(self):
 		# Select random path of the folders
 		root = 'ucf24_project/labels/'
-		activity = random.choice([dir for dir in os.listdir(root) if not dir.endswith('.DS_Store')])
+		activity = random.choice(self.classes)
 		video = random.choice([dir for dir in os.listdir(root+'/'+activity) if not dir.endswith('.DS_Store')])
 		frame = random.choice([f for f in os.listdir(root+'/'+activity+'/'+video) if not f.endswith('.DS_Store')])
 		URL = root+'/'+activity+'/'+video+'/'+frame
