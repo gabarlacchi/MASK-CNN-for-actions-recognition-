@@ -3,7 +3,7 @@ matplotlib.use('TkAgg')
 
 import utils
 import random
-import os
+import glob, os
 import cv2
 import csv
 from PIL import Image, ImageFont, ImageDraw, ImageEnhance
@@ -13,7 +13,6 @@ import matplotlib.patches as patches
 import matplotlib.lines as lines
 from matplotlib.patches import Polygon
 import IPython.display
-
 
 class actionCLSS_Dataset(utils.Dataset):
 	""" Import images and create the training dataset. Images are in the path
@@ -66,42 +65,30 @@ class actionCLSS_Dataset(utils.Dataset):
 			self.add_image("actions", image_id=i, path=self.paths[i], width=width, height=height, actions=action, bbox=self.boxes[i])
 
 
-
 	def selectActions(self):
-		# select a random class from the classes array. Then select a random video within the class
-		# At the end select a random frame within the video and add it
-		indexClass = random.randint(0, len(self.classes)-1)
-		#print(str(indexClass))
-		URL = 'ucf24_project/labels/'+self.classes[indexClass]+"/"
-		videoList = os.listdir(URL)
-
-		rand = random.randint(0,len(videoList)-1)
-		if (videoList[rand] != '.DS_Store'):
-			URL = URL + videoList[rand] + '/'
-		else:
-			rand = random.randint(0,len(videoList)-1)
-			URL = URL + videoList[rand] + '/'
-		imgsList = os.listdir(URL)
-		rand = random.randint(0,len(imgsList)-1)
-		if (imgsList[rand] != '.DS_Store'):
-			URL = URL + imgsList[rand] 
-		else:
-			rand = random.randint(0,len(imgsList)-1)
-			URL = URL + imgsList[rand] 
+		# Select random path of the folders
+		root = 'ucf24_project/labels/'
+		activity = random.choice([dir for dir in os.listdir(root) if not dir.endswith('.DS_Store')])
+		video = random.choice([dir for dir in os.listdir(root+'/'+activity) if not dir.endswith('.DS_Store')])
+		frame = random.choice([f for f in os.listdir(root+'/'+activity+'/'+video) if not f.endswith('.DS_Store')])
+		URL = root+'/'+activity+'/'+video+'/'+frame
 		# open the file with the labels (class and bbox)
 		with open(URL) as file:
 			lines = file.readlines()
-			_tupla = str(lines[0]).replace('\n', '').split(' ')
+			_tuple = [str(line).replace('\n', '').split(' ') for line in lines]
 		# bb
-		self.boxes.append(_tupla[1:5])
+		self.boxes.append(_tuple[0][1:5])
 		# self.actions.append((self.classes[indexClass], 'color', dims))
-		self.actions.append(self.classes[indexClass])
+		self.actions.append(activity)
 		self.paths.append(URL)
 		dims = 1, 2, 3
 		# not necessary (just not to change the code)
 		color = tuple([random.randint(0, 255) for _ in range(3)])
 		
-		return self.classes[indexClass]
+		return activity
+
+
+
 
 	def return_bbox(self, image_id):
 		b = np.zeros([1, 4], dtype=np.int32)
