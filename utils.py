@@ -248,7 +248,8 @@ class Dataset(object):
         self._image_ids = []
         self.image_info = []
         # Background is always the first class
-        self.class_info = [{"source": "", "id": 0, "name": "BG"}]
+        self.class_info = [{"source": "bg", "id": 0, "name": "BackGround"}]
+        #self.class_info = [{"source": "sport", "id": 1, "name": "WalkingWithDog"}]
         self.source_class_ids = {}
 
     def add_class(self, source, class_id, class_name):
@@ -355,6 +356,7 @@ class Dataset(object):
     def load_image(self, image_id):
         """Load the specified image and return a [H,W,3] Numpy array.
         """
+        print(self.image_info[image_id]['path'])
         # Load image
         image = skimage.io.imread(self.image_info[image_id]['path'])
         # If grayscale. Convert to RGB for consistency.
@@ -609,6 +611,7 @@ def compute_ap(gt_boxes, gt_class_ids, gt_masks,
 
     # Compute IoU overlaps [pred_masks, gt_masks]
     overlaps = compute_overlaps_masks(pred_masks, gt_masks)
+    # overlaps = compute_overlaps_masks(gt_masks, gt_masks)
 
     # Loop through ground truth boxes and find matching predictions
     match_count = 0
@@ -651,7 +654,7 @@ def compute_ap(gt_boxes, gt_class_ids, gt_masks,
     mAP = np.sum((recalls[indices] - recalls[indices - 1]) *
                  precisions[indices])
 
-    return mAP, precisions, recalls, overlaps
+    return mAP, precisions, recalls, overlaps, pred_match, gt_match
 
 
 def compute_recall(pred_boxes, gt_boxes, iou):

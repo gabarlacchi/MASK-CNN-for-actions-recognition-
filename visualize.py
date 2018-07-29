@@ -17,7 +17,7 @@ import matplotlib.patches as patches
 import matplotlib.lines as lines
 from matplotlib.patches import Polygon
 import IPython.display
-
+from PIL import Image
 import utils
 
 
@@ -76,6 +76,15 @@ def apply_mask(image, mask, color, alpha=0.5):
 def display_instances(image, boxes, masks, class_ids, class_names,
                       scores=None, title="",
                       figsize=(16, 16), ax=None):
+    '''
+    im = Image.fromarray(image)
+    im.save("testImgs/img.jpeg")
+    im = Image.fromarray(masks[:, :, 0])
+    im.save("testImgs/imgMasx.jpeg")
+
+
+    return 0
+    '''
     """
     boxes: [num_instance, (y1, x1, y2, x2, class_id)] in image coordinates.
     masks: [height, width, num_instances]
@@ -127,6 +136,7 @@ def display_instances(image, boxes, masks, class_ids, class_names,
         ax.text(x1, y1 + 8, caption,
                 color='w', size=11, backgroundcolor="none")
 
+        
         # Mask
         mask = masks[:, :, i]
         masked_image = apply_mask(masked_image, mask, color)
@@ -142,7 +152,9 @@ def display_instances(image, boxes, masks, class_ids, class_names,
             verts = np.fliplr(verts) - 1
             p = Polygon(verts, facecolor="none", edgecolor=color)
             ax.add_patch(p)
+
     ax.imshow(masked_image.astype(np.uint8))
+    #ax.imshow(image)
     plt.show()
     
 

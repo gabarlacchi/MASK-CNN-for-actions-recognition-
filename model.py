@@ -50,7 +50,7 @@ def log(text, array=None):
             str(array.shape),
             array.min() if array.size else "",
             array.max() if array.size else ""))
-    print(text)
+    #print(text)
 
 
 class BatchNorm(KL.BatchNormalization):
@@ -538,6 +538,7 @@ def detection_targets_graph(proposals, gt_class_ids, gt_boxes, gt_masks, config)
 
     # Assign positive ROIs to GT boxes.
     positive_overlaps = tf.gather(overlaps, positive_indices)
+    #print("HERE THE ERROR")
     roi_gt_box_assignment = tf.argmax(positive_overlaps, axis=1)
     roi_gt_boxes = tf.gather(gt_boxes, roi_gt_box_assignment)
     roi_gt_class_ids = tf.gather(gt_class_ids, roi_gt_box_assignment)
@@ -1211,9 +1212,10 @@ def load_image_gt(dataset, config, image_id, augment=False,
     # Bounding boxes. Note that some boxes might be all zeros
     # if the corresponding mask got cropped out.
     # bbox: [num_instances, (y1, x1, y2, x2)]
-    #bbox = utils.extract_bboxes(mask)
-    bbox = dataset.return_bbox(image_id)
-    print(bbox)
+    bbox = utils.extract_bboxes(mask)
+    bbox.shape
+    #bbox = dataset.return_bbox(image_id)
+    #print(bbox)
 
     # Active classes
     # Different datasets have different classes, so track the
@@ -1638,6 +1640,7 @@ def data_generator(dataset, config, shuffle=True, augment=True, random_rois=0,
             image, image_meta, gt_class_ids, gt_boxes, gt_masks = \
                 load_image_gt(dataset, config, image_id, augment=augment,
                               use_mini_mask=config.USE_MINI_MASK)
+            # print(image.shape)
 
             # Skip images that have no instances. This can happen in cases
             # where we train on a subset of classes and the image doesn't
@@ -2129,6 +2132,7 @@ class MaskRCNN():
                 continue
             # Is it trainable?
             trainable = bool(re.fullmatch(layer_regex, layer.name))
+            #print((layer.name, trainable))
             # Update layer. If layer is a container, update inner layer.
             if layer.__class__.__name__ == 'TimeDistributed':
                 layer.layer.trainable = trainable
@@ -2138,6 +2142,7 @@ class MaskRCNN():
             if trainable and verbose > 0:
                 log("{}{:20}   ({})".format(" " * indent, layer.name,
                                             layer.__class__.__name__))
+
 
     def set_log_dir(self, model_path=None):
         """Sets the model log directory and epoch counter.
@@ -2202,9 +2207,11 @@ class MaskRCNN():
             "5+": r"(res5.*)|(bn5.*)|(mrcnn\_.*)|(rpn\_.*)|(fpn\_.*)",
             # All layers
             "all": ".*",
+            "vmr": r"(mrcnn\_bbox\_fc)|(mrcnn\_bbox)|(mrcnn\_class\_.*)|(mrcnn\_detection)"
         }
         if layers in layer_regex.keys():
             layers = layer_regex[layers]
+        print(layers)
 
         # Data generators
         train_generator = data_generator(train_dataset, self.config, shuffle=True,
@@ -2245,7 +2252,7 @@ class MaskRCNN():
             validation_steps=self.config.VALIDATION_STEPS,
             max_queue_size=100,
             workers=workers,
-            use_multiprocessing=True,
+            use_multiprocessing=False,
         )
         self.epoch = max(self.epoch, epochs)
 

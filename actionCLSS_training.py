@@ -21,10 +21,9 @@ import model as modellib
 import visualize
 from model import log
 from PIL import Image
-
+print("eddaje")
 os.environ["CUDA_DEVICE_ORDER"]="PCI_BUS_ID"
 os.environ["CUDA_VISIBLE_DEVICES"]="0"
-
 # Root directory of the project
 ROOT_DIR = os.getcwd()
 
@@ -43,18 +42,9 @@ dataset_train.load_dataset(10, config.IMAGE_SHAPE[0], config.IMAGE_SHAPE[1])
 dataset_train.prepare()
 
 # Validation dataset
-dataset_val = actionCLSS_Dataset()
-dataset_val.load_dataset(1, config.IMAGE_SHAPE[0], config.IMAGE_SHAPE[1])
-dataset_val.prepare()
-
-
-'''
-image_ids = np.random.choice(dataset_train.image_ids, 6)
-for image_id in image_ids:
-	image = dataset_train.load_image(image_id)
-	image = dataset_train.load_bb(image, image_id)
-	image.show()
-'''
+#dataset_val = actionCLSS_Dataset()
+#dataset_val.load_dataset(3, config.IMAGE_SHAPE[0], config.IMAGE_SHAPE[1])
+#dataset_val.prepare()
 
 # Create model in training mode
 
@@ -66,17 +56,20 @@ init_with = "coco"
 #init_with = "last"
 if init_with == "coco":
 	model.load_weights(COCO_MODEL_PATH, by_name=True,
-                       exclude=["mrcnn_class_logits", "mrcnn_bbox_fc", 
-                                "mrcnn_bbox", "mrcnn_mask"])
+                       exclude=["mrcnn_class_logits", "mrcnn_bbox_fc",
+                                 "mrcnn_bbox", "mrcnn_mask"])
+
+# exclude=["mrcnn_class_logits", "mrcnn_bbox_fc",
+#                                 "mrcnn_bbox", "mrcnn_mask"])
 elif init_with == "last":
 	# Load the last model you trained and continue training
     model.load_weights(model.find_last()[1], by_name=True)
 
 print("pre")
-model.train(dataset_train, dataset_val, 
+model.train(dataset_train, dataset_train,
             learning_rate=config.LEARNING_RATE/10, 
             epochs=2, 
-            layers='mrcnn_class_logits')
+            layers='heads')
 print("post")
 
 
@@ -85,7 +78,7 @@ class InferenceConfig(actionCLSS_Config):
 	IMAGES_PER_GPU = 1
 
 inference_config = InferenceConfig()
-print("ciao")
+
 # Recreate the model in inference mode
 model = modellib.MaskRCNN(mode="inference", 
                           config=inference_config,
@@ -98,7 +91,7 @@ image_id = random.choice(dataset_val.image_ids)
 original_image, image_meta, gt_class_id, gt_bbox, gt_mask =\
     modellib.load_image_gt(dataset_val, inference_config, 
                            image_id, use_mini_mask=False)
-print(str(gt_class_id))
+#print(str(gt_class_id))
 
 '''
 log("original_image", original_image)
