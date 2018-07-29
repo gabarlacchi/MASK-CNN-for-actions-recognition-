@@ -26,16 +26,27 @@ Only bboxes groundtruth is available and no masks are annotated: so we produced 
 
 
 ## Getting Started
-Here we propose a bief explenation of the files and their usages:
+Here we propose a bief explenation of the files and their usages (we strongly refer to ucf24 dataset above mentioned!):
 Coco weights used are available [here](https://arxiv.org/abs/1703.06870)
 
-- 
+- **actionCLSS_config.py**: extends and override net configuration.
+- **actionCLSS_dataset.py** and **actionCLSS_dataset_partitioned.py**: offers two dataset classes: the first can be instantiated specifying the number of samples which compose it, the second read the samples from `testList.txt` and `validationList.txt`.
+- **actionCLSS_training.py**: obviouslly, is the routine that manage the train.
+- **evaluation.py** : evaluate the model on the whole testSet and iteratively save local results.
+- **printPR.py**: use results produced by `evaluation.py` to compute Precision and Recall for each class.
+- **createMasks.py**: produce person masks for each frame of the dataset, like exposed below.
 
+![Mask Groundthrut generation](https://github.com/barloccia/MASK-CNN-for-actions-recognition-/blob/master/images/masks.png)
 
 ## Results
-mAP without considering masks:  84.5%
-mAP considering masks IoU=25: 37.4%
-mAP considering masks IoU=50:  28.7%
+
+A brief argue can be over the divergence between a quantitative and a qualitative analysis on the maks and bb produced.
+Below an example is showed: predictedion surclass the groundtruth, but numerically this means a penalization!
+![Qualitative Vs Quantitative](https://github.com/barloccia/MASK-CNN-for-actions-recognition-/blob/master/images/gtVsPred.png)
+
+- mAP without considering masks:  84.5%
+- mAP considering masks IoU=25: 37.4%
+- mAP considering masks IoU=50:  28.7%
 
 | Class        | No Mask           | IoU = 25  | IoU = 50  |
 | ------------ |:-----------------:| :--------:| :--------:|

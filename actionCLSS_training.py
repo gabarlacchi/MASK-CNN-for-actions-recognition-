@@ -1,7 +1,5 @@
 import matplotlib
 matplotlib.use('TkAgg')
-
-
 import os
 import sys
 import random
@@ -10,25 +8,68 @@ import re
 import time
 import numpy as np
 import cv2
-#import matplotlib
-#import matplotlib.pyplot as plt
-
-from actionCLSS_config import actionCLSS_Config
-from actionCLSS_dataset import actionCLSS_Dataset
+import matplotlib.pyplot as plt
 import utils
 import config
+from PIL import Image
+from datetime import date
+
+# from the project
+from actionCLSS_config import actionCLSS_Config
+from actionCLSS_dataset import ShapesDataset
+from actionCLSS_dataset_partitioned import ShapesDatasetPartitioned
 import model as modellib
 import visualize
 from model import log
-from PIL import Image
-print("eddaje")
+
 os.environ["CUDA_DEVICE_ORDER"]="PCI_BUS_ID"
 os.environ["CUDA_VISIBLE_DEVICES"]="0"
 # Root directory of the project
 ROOT_DIR = os.getcwd()
 
-# Directory to save logs and trained model
-MODEL_DIR = os.path.join(ROOT_DIR, "logs")
+# ! SAVING MODELS ! #
+#   passing data to the function after loaded the images
+#   If fold_name is empty ('') a default one are given. See below
+
+def save_model(LAYERS, N_TR_IMGS, N_VAL_IMGS, learninRate, fold_name='', dir='logs/'):
+    path = []
+    # compose the name with defaults values. Add info or not below
+    path.append(dir)
+    path.append('tr_')
+    path.append(str(LAYERS))
+    path.append('_')
+    path.append(str(N_TR_IMGS))
+    path.append('_')
+    path.append(str(N_VAL_IMGS))
+    path.append('_')
+    path.append(str(learninRate))
+    path.append('||')
+    if fold_name == '':
+        path.append(str(date.today()))
+    else:
+        path.append(fold_name)
+    full_path = ''.join(path)
+
+    try:
+        os.makedirs(full_path)
+    except OSError:
+        if not os.path.isdir(full_path):
+            raise
+
+
+    return full_path
+
+
+def get_ax(rows=1, cols=1, size=8):
+    """Return a Matplotlib Axes array to be used in
+    all visualizations in the notebook. Provide a
+    central point to control graph sizes.
+
+    Change the default size attribute to control the size
+    of rendered images
+    """
+    _, ax = plt.subplots(rows, cols, figsize=(size * cols, size * rows))
+    return ax
 
 # Local path to trained weights file
 COCO_MODEL_PATH = os.path.join(ROOT_DIR, "mask_rcnn_coco.h5")
@@ -36,18 +77,27 @@ COCO_MODEL_PATH = os.path.join(ROOT_DIR, "mask_rcnn_coco.h5")
 config = actionCLSS_Config()
 config.display()
 
+TARGET_LAYERS = 'heads'
+
+
 # training dataset
-dataset_train = actionCLSS_Dataset()
-dataset_train.load_dataset(10, config.IMAGE_SHAPE[0], config.IMAGE_SHAPE[1])
+N_TRAIN_IMGS = 'nativ'
+dataset_train = ShapesDatasetPartitioned()
+dataset_train.load_train_shapes()
 dataset_train.prepare()
 
 # Validation dataset
-#dataset_val = actionCLSS_Dataset()
-#dataset_val.load_dataset(3, config.IMAGE_SHAPE[0], config.IMAGE_SHAPE[1])
-#dataset_val.prepare()
+N_VAL_IMGS = 'nativ'
+dataset_val = ShapesDatasetPartitioned()
+dataset_val.load_val_shapes()
+dataset_val.prepare()
+
+# Create directory to save logs and trained model
+full_path = save_model(TARGET_LAYERS, N_TRAIN_IMGS, N_VAL_IMGS, config.LEARNING_RATE, '')
+MODEL_DIR = os.path.join(ROOT_DIR, full_path)
+print('MODEL SAVED PATH:' + str(full_path))
 
 # Create model in training mode
-
 model = modellib.MaskRCNN(mode="training", config=config,
                           model_dir=MODEL_DIR)
 
@@ -59,79 +109,12 @@ if init_with == "coco":
                        exclude=["mrcnn_class_logits", "mrcnn_bbox_fc",
                                  "mrcnn_bbox", "mrcnn_mask"])
 
-# exclude=["mrcnn_class_logits", "mrcnn_bbox_fc",
-#                                 "mrcnn_bbox", "mrcnn_mask"])
+
 elif init_with == "last":
 	# Load the last model you trained and continue training
     model.load_weights(model.find_last()[1], by_name=True)
 
-print("pre")
-model.train(dataset_train, dataset_train,
-            learning_rate=config.LEARNING_RATE/10, 
-            epochs=2, 
-            layers='heads')
-print("post")
-
-
-class InferenceConfig(actionCLSS_Config):
-	GPU_COUNT = 1
-	IMAGES_PER_GPU = 1
-
-inference_config = InferenceConfig()
-
-# Recreate the model in inference mode
-model = modellib.MaskRCNN(mode="inference", 
-                          config=inference_config,
-                          model_dir=MODEL_DIR)
-
-model_path = model.find_last()[1]
-model.load_weights(model_path, by_name=True)
-# Test on a random image
-image_id = random.choice(dataset_val.image_ids)
-original_image, image_meta, gt_class_id, gt_bbox, gt_mask =\
-    modellib.load_image_gt(dataset_val, inference_config, 
-                           image_id, use_mini_mask=False)
-#print(str(gt_class_id))
-
-'''
-log("original_image", original_image)
-log("image_meta", image_meta)
-log("gt_class_id", gt_class_id)
-log("gt_bbox", gt_bbox)
-log("gt_mask", gt_mask)
-
-visualize.display_instances(original_image, gt_bbox, gt_mask, gt_class_id, 
-                            dataset_train.class_names, figsize=(8, 8))
-'''
-#log("gt_bbox", gt_bbox)
-#visualize.draw_box(original_image, gt_bbox, (0,0,0))
-dataset_train.draw_box(original_image, gt_bbox, gt_class_id)
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+model.train(dataset_train, dataset_val,
+            learning_rate=config.LEARNING_RATE,
+            epochs=20,
+            layers=TARGET_LAYERS)
