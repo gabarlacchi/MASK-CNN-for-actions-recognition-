@@ -22,7 +22,7 @@ A frame annotated version of this dataset it's available from this [repo by Gurk
 Not whole dataset is annotated, only “frame of interest”: this produces the 70% of useless data.
 Only bboxes groundtruth is available and no masks are annotated: so we produced a mask gt by ourselves.
 
-[logo]: https://github.com/barloccia/MASK-CNN-for-actions-recognition-/blob/master/images/aims.png "Aims"
+![Aims](https://github.com/barloccia/MASK-CNN-for-actions-recognition-/blob/master/images/aims.png)
 
 
 ## Getting Started
