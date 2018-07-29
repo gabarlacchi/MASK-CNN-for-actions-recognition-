@@ -11,7 +11,7 @@ Mask R-CNN is a powerful framework developed by facebook ([here more](https://ar
 Address the network towards Sport activities detection using fine tuning technique.
 We want that the new will be able to detect only main subjects labelled as activity name (i.e. only people)
 
-[logo]: https://github.com/adam-p/markdown-here/raw/master/src/common/images/aims.png "Logo Title Text 2"
+![Aims](https://github.com/barloccia/MASK-CNN-for-actions-recognition-/blob/master/images/aims.png)
 
 ## Dataset
 
@@ -22,7 +22,7 @@ A frame annotated version of this dataset it's available from this [repo by Gurk
 Not whole dataset is annotated, only “frame of interest”: this produces the 70% of useless data.
 Only bboxes groundtruth is available and no masks are annotated: so we produced a mask gt by ourselves.
 
-![Aims](https://github.com/barloccia/MASK-CNN-for-actions-recognition-/blob/master/images/aims.png)
+![Data distribution](https://github.com/barloccia/MASK-CNN-for-actions-recognition-/blob/master/images/data.png)
 
 
 ## Getting Started
